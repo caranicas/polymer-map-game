@@ -6,7 +6,7 @@
 
 You will need a [google api key](https://console.developers.google.com/apis) to access google maps. If you have never created one before [instructions](https://developers.google.com/maps/documentation/javascript/get-api-key) can be found here.
 
-I added both `localhost` and `127.0.0.1` to the credentials page to test locally, The terminal says that site should be reachable at localhost, but I was running on node v6.2.0, vs v4 which is target of `polymer-cli`.
+I added both `localhost` and `127.0.0.1` to the credentials section to test locally, The terminal says that site should be reachable at localhost, but I was running on node v6.2.0, vs v4 which is target of `polymer-cli`, so I think this might be casuing that issue. 
 
 ---
 
