@@ -1,0 +1,7 @@
+{
+  "name": "maps",
+  "short_name": "maps",
+  "description": "a map game",
+  "start_url": "/",
+  "display": "standalone"
+}

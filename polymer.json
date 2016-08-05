@@ -1,0 +1,7 @@
+{
+  "entrypoint": "index.html",
+  "shell": "src/maps-app/maps-app.html",
+  "fragments": [
+    "src/maps-app/game-display.html"
+  ]
+}

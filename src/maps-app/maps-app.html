@@ -1,0 +1,478 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/google-map/google-map.html">
+
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-in-animation.html">
+<link rel="import" href="../../bower_components/neon-animation/animations/fade-out-animation.html">
+
+
+<link rel="import" href="../../bower_components/iron-overlay-behavior/iron-overlay-behavior.html">
+
+
+<dom-module is="dom-bind" id="maps-app">
+  <template>
+    <style>
+
+      :host {
+        display: block;
+        --sidebar-width: 240px;
+      }
+      google-map {
+        height: 100vh;
+        width: calc(100vw - var(--sidebar-width));
+        display: block;
+        margin-left: var(--sidebar-width);
+      }
+      paper-input {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      h3 {
+        position: absolute;
+        top:0;
+        width:100px;
+        height:100px;
+        background-color:green;
+      }
+
+      #intro{
+        text-align: center;
+        padding:20px;
+      }
+
+      #instructBut {
+        background-color: rgb(210,220,230);
+        width: 114px;
+      }
+
+
+
+      #report{
+        padding:20px;
+      }
+      #goodjob {
+        position: absolute;
+        top: 10px;
+        left:10px;
+        margin:0;
+        background-color: rgb(100,200,150)
+      }
+
+      #tryagain {
+        position: absolute;
+        top: 10px;
+        left:10px;
+        margin:0;
+        background-color: rgb(230,20,40)
+      }
+
+      #tryagain {
+        position: absolute;
+        top: 10px;
+        left:10px;
+        margin:0;
+        background-color: rgb(230,220,40)
+      }
+
+      iron-overlay-backdrop.opened {
+        opacity: 1 !important;
+      }
+
+
+
+      paper-button.submit {
+        width: 80%;
+        margin: 0 10%;
+        background-color: aqua;
+        margin-bottom:40px
+      }
+      paper-button.help {
+        width: 80%;
+        margin: 0 10%;
+        background-color: yellow;
+        margin-bottom:14px
+      }
+      paper-button.fail {
+        width: 80%;
+        margin: 0 10%;
+        background-color: red;
+        margin-bottom:40px
+      }
+      .sidebar {
+        width:var(--sidebar-width);
+        height: 100%;
+        position: absolute;
+        top:0;
+        left: 0;
+        background-color: rgba(210,210,210);
+      }
+      .score {
+        width: 80%;
+        margin: 0 10%;
+      }
+    </style>
+
+    <google-map
+      latitude=[[currentLat]]
+      longitude=[[currentLong]]
+      api-key="{{key}}"
+      zoom="{{zoom}}"
+      maxZoom=[[maxzoom]]
+      draggable=false
+      disable-default-ui=true
+      disable-zoom>
+      <google-map-marker
+      latitude=[[currentLat]]
+      longitude=[[currentLong]]
+      title="Where are you?">
+      </google-map-marker>
+
+      <paper-dialog id="goodjob"
+        entry-animation="fade-in-animation"
+        exit-animation="fade-out-animation">
+        <h1>Correct</h1>
+      </paper-dialog>
+
+      <paper-dialog id="tryagain"
+        entry-animation="fade-in-animation"
+        exit-animation="fade-out-animation">
+        <h1>TRY AGAIN</h1>
+      </paper-dialog>
+
+      <paper-dialog id="yikes"
+        entry-animation="fade-in-animation"
+        exit-animation="fade-out-animation">
+        <h1>:(</h1>
+      </paper-dialog>
+
+      <paper-dialog id="instructions"
+        entry-animation="fade-in-animation"
+        exit-animation="fade-out-animation"
+        on-keydown="dismissInstructions">
+        <p>You have [[maxTime]] seconds to guess as many states as you can.</p>
+        <p>Everytime you guess wrong you zoom out.</p>
+        <p>You can zoom out manually too in you'd like, but your zoom determines your points.</p>
+        <p>If you dont want to bother with one you can skip it and move on.</p>
+        <p>...but you should always try.</p>
+      </paper-dialog>
+
+      <paper-dialog id="intro" modal opened on-iron-overlay-closed="startGame">
+
+        <h2>Where am I?</h2>
+        <h4>The geography game that keeps you guessing</h4>
+
+        <paper-button dialog-confirm raised>Start</paper-button>
+        <paper-button id="instructBut" on-tap="showInstructions" autofocus raised>Instructions</paper-button>
+
+      </paper-dialog>
+
+      <paper-dialog id="report" modal>
+        <h2>Good Game!</h2>
+        <div>
+          <h5>You Scored [[score]] points</h5>
+          <h5>You answered [[totalCorrect]] questions correctly of [[locations.length]]</h5>
+          <h5>It took you [[totalTime(maxTime, timeLeft)]] seconds</h5>
+          <h5>You thought [[totalSkipped]] were too difficult</h5>
+        </div>
+      </paper-dialog>
+
+    </google-map>
+
+
+    <div class="sidebar">
+
+      <paper-input
+        id="stateInput"
+        placeholder="Where are you?"
+        value="{{currentGuess::input}}"
+        on-keydown="checkForEnter">
+      </paper-input>
+
+      <paper-button raised class="submit" on-tap="guess" >Submit</paper-button>
+      <paper-button raised class="help" on-tap="dontKnow">Zoom Out</paper-button>
+      <paper-button raised class="fail" on-tap="giveUp">Give Up?</paper-button>
+
+      <div class="score">
+        <p>Time left : <span>[[timeLeft]]</span></p>
+        <p>Current round : <span>[[currentRound]]</span>/[[locations.length]]</p>
+        <p>Points for zoom : <span>[[zoom]]</span></p>
+        <p>Total Score : <span>[[score]]</span></p>
+      </div>
+
+    </div>
+
+  </template>
+
+  <script>
+
+    Polymer({
+
+      is: 'maps-app',
+
+      properties: {
+        key: {
+          type: String,
+          value: '###############',
+          notify: true
+        },
+
+        score:{
+          type: Number,
+          value: 0,
+          notify: true
+        },
+
+        zoom:{
+          type: Number,
+          value: 17,
+          notify: true
+        },
+
+        maxzoom: {
+          type: Number,
+          value: 17,
+          notify: true
+        },
+
+        currentGuess:{
+          type: String,
+          value: '',
+          notify: true
+        },
+
+        currentIndex: {
+          type: Number,
+          value: 0,
+          notify: true
+        },
+
+        currentRound: {
+          type: Number,
+          computed: '__getRoundNumber(currentIndex)'
+        },
+
+        currentLat: {
+          type: Number,
+          computed: '__getLatForIndex(currentIndex, locations)'
+        },
+
+        currentLong: {
+          type: Number,
+          computed: '__getLongForIndex(currentIndex, locations)'
+        },
+
+        timeLeft: {
+          type: Number,
+          value: 60,
+          notify: true
+        },
+
+        maxTime: {
+          type: Number,
+          value: 60,
+          notify: true
+        },
+
+        totalCorrect: {
+          type: Number,
+          value: 0,
+          notify: true
+        },
+
+        totalSkipped: {
+          type: Number,
+          value: 0,
+          notify: true
+        },
+
+        locations:{
+          type: Array,
+          notify: true
+        }
+      },
+
+      ready: function() {
+        this.locations = [
+
+          {
+            state:"arkansas",
+            lat:35.808225,
+            long:-90.671411
+          },
+
+          {
+            state:"new york",
+            lat:43.042838,
+            long:-77.657785
+          },
+
+          {
+            state:"ohio",
+            lat:39.782528,
+            long:-84.170285
+          },
+
+          {
+            state:"iowa",
+            lat:  43.153648,
+            long: -93.197497
+          },
+          {
+            state:"texas",
+            lat:33.589983,
+            long:-101.288520
+          },
+
+          {
+            state:"florida",
+            lat:30.474133,
+            long:-87.206537
+          },
+
+          {
+            state:"south carolina",
+            lat:33.377465,
+            long:-79.293282
+          },
+
+          {
+            state:"washington",
+            lat:33.377465,
+            long:-79.293282
+          },
+          {
+            state:"vermont",
+            lat:44.294198,
+            long: -72.679213
+          },
+          {
+            state:"california",
+            lat:40.5602775,
+            long:-122.4065888
+          }
+        ];
+
+      },
+
+      startGame:function() {
+        this.$.stateInput.focus()
+        this.__startTimer();
+      },
+
+      showInstructions:function() {
+        this.$.instructions.open()
+      },
+
+      checkForEnter:function(e) {
+        //console.log('KEY CODE', e.keyCode);
+        if (e.keyCode === 13) {
+         this.guess()
+        }
+      },
+      dismissInstructions: function(e) {
+        //console.log('KEY CODE', e.keyCode);
+        if (e.keyCode === 13) {
+          this.$.instructions.close()
+        }
+      },
+      guess:function () {
+
+        if (this.currentGuess.toLowerCase() === this.locations[this.currentIndex].state){
+          this.score += this.zoom;
+
+          this.$.goodjob.open();
+
+          setTimeout(() => {
+            this.$.goodjob.close();
+            this.$.stateInput.focus();
+          },600);
+
+          this.totalCorrect++;
+          this.currentGuess = '';
+          this.__nextRound();
+        }
+
+        else {
+          if(this.zoom > 0) {
+
+            this.$.tryagain.open()
+            setTimeout(() => {
+              this.$.tryagain.close()
+              this.$.stateInput.focus();
+            },600)
+
+            this.dontKnow();
+
+          }
+          else {
+            this.__nextRound();
+          }
+        }
+
+      },
+
+      totalTime:function(max, left) {
+        return max - left;
+      },
+
+      dontKnow:function() {
+        this.zoom -= 1;
+      },
+
+      giveUp:function () {
+        this.totalSkipped++;
+
+        this.$.yikes.open()
+        setTimeout(() => {
+          this.$.yikes.close()
+          this.$.stateInput.focus();
+        },600)
+
+        this.__nextRound();
+      },
+
+      __startTimer: function() {
+        this.interval = setInterval( () => {
+          this.timeLeft--;
+          if (this.timeLeft == 0) {
+            this.__gameOver();
+          }
+        },1000);
+      },
+
+      __nextRound:function () {
+
+        if(this.currentIndex === (this.locations.length-1)) {
+          this.__gameOver()
+        }
+
+        else {
+          this.currentIndex  += 1;
+          this.zoom = this.maxzoom;
+        }
+      },
+
+      __gameOver: function() {
+        this.$.report.open();
+        clearInterval(this.interval)
+      },
+
+      __getRoundNumber:function(index) {
+        return index+1;
+      },
+
+      __getLatForIndex:function(index, locations) {
+        return locations[index].lat;
+      },
+
+      __getLongForIndex:function(index, locations) {
+        return locations[index].long;
+      }
+
+    });
+  </script>
+</dom-module>
