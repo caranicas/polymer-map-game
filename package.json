@@ -1,0 +1,22 @@
+{
+  "name": "polymer-map-game",
+  "version": "2.0",
+  "description": "Using redux bindings with web components",
+  "repository": "https://github.com/caranicas/polymer-map-game",
+  "main": "index.html",
+  "scripts": {
+    "start": "polymer serve",
+    "build": "polymer build",
+    "tets": "polymer test"
+  },
+  "author": "Kendrick Caranicas",
+  "license": "MIT",
+  "devDependencies": {},
+  "engines": {
+    "node": "6.x"
+  },
+  "dependencies": {
+    "es-no-build": "^0.1.0",
+    "redux": "^3.5.2"
+  }
+}
