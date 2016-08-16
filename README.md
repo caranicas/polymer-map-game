@@ -1,6 +1,6 @@
 ## WHERE AM I?
 ###### A Geography Guessing Game
-----
+
 
 ### Set up instructions
 
